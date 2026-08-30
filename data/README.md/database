@@ -1,3 +1,47 @@
-# Data
+## 📊 Dataset
 
-This directory contains the dataset and reproducibility files used in the machine-learning analysis.
+The dataset contains experimentally reported inorganic phosphor materials
+and physicochemical descriptors used for machine-learning prediction of
+their emission wavelength.
+
+### Target Property
+
+The prediction target is:
+
+- **Emission max. (nm)** — maximum photoluminescence emission wavelength.
+
+### Dataset File
+
+The dataset used for the machine-learning analysis is provided in:
+
+`data/group_one_dopant_without_exact_duplicates.csv`
+
+This dataset represents the single-dopant subset after removal of exact
+duplicate entries.
+
+### Descriptor Information
+
+The input variables include compositional, elemental, electronic, and
+ionic descriptors describing the phosphor host, dopant, and local chemical
+environment.
+
+Detailed definitions and units of the descriptors are provided in:
+
+`data/descriptor_definitions.csv`
+
+### Data Preprocessing
+
+Before machine-learning analysis:
+
+- Rows with missing target values were removed.
+- Non-numerical metadata columns were excluded from the ML feature matrix.
+- Constant numerical features were removed.
+- Missing descriptor values were imputed using the median of the corresponding descriptor.
+- Feature scaling was performed within the cross-validation procedure to avoid data leakage.
+
+### Cross-Validation Information
+
+The exact sample-to-fold assignments used for 10-fold cross-validation are
+provided in:
+
+`data/CV_FOLD_ASSIGNMENTS.csv`
