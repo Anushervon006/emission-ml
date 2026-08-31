@@ -21,7 +21,7 @@ TARGET = "Emission max. (nm)"
 
 FEATURES = [
     "ionic_radius_emission_center",
-    "Excitation source (nm)",
+    "Excitation source",
     "1st dopant valency",
     "avg_d_electrons",
     "Ionization Energy_sum",
