@@ -41,12 +41,6 @@ Before model development:
 The processed dataset included in this repository therefore represents the
 specific data subset used for the reported machine-learning experiments.
 
-### Original Data Source
-
-The original IPOP database can be accessed at:
-
-[Figshare — Optical property database of inorganic phosphor (IPOP dataset)](https://figshare.com/articles/dataset/Optical_property_database_of_inorganic_phosphor_IPOP_dataset_/21766916)
----
 
 ## Cross-Validation
 
