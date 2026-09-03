@@ -1,4 +1,5 @@
-# Emission-ML
+# From Explainable Machine Learning to Physics-Guided Design Rules for Inorganic Phosphors
+ 
 
 Machine-learning analysis for predicting the emission wavelength of inorganic
 phosphor materials from physicochemical descriptors.
