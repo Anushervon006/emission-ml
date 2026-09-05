@@ -9,8 +9,7 @@ machine-learning analysis of inorganic phosphor emission wavelengths.
 
 The dataset contains inorganic phosphor materials together with
 physicochemical descriptors used as input variables for machine-learning
-models.
-
+models. 2327 samples and 46 descriptors 
 **Target variable:** `Emission max. (nm)`
 
 The dataset represents the single-dopant subset after removal of exact
