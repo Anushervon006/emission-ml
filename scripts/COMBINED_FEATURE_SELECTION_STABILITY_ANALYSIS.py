@@ -1,39 +1,3 @@
-"""
-COMBINED ALL-k PERFORMANCE + RAW-FOLD STABILITY + STRICT 10/10 SELECTION
-=======================================================================
-Dataset   : IPOP phosphor database (single-dopant subset)
-Target    : Emission wavelength (nm)
-Methods   : 12 feature-selection methods
-Regressors: Random Forest (RF) and Gradient Boosting (GB)
-CV        : 10-fold; feature selection occurs inside each training fold
-
-THIS SCRIPT COMBINES BOTH PREVIOUS METHODOLOGIES WITHOUT MIXING THEM:
-
-A) PERFORMANCE-OPTIMAL ANALYSIS
-   - For every Method × k, calculate RF/GB predictive performance.
-   - Calculate all 8 stability metrics directly from the 10 raw fold subsets.
-   - Choose optimal k separately for RF and GB using performance only:
-       1. highest mean R²
-       2. lowest mean RMSE
-       3. lowest mean MAE
-       4. fewer features as the final tie-breaker
-   - Stability is reported, but it is NOT an eligibility filter.
-
-B) STRICT FULLY-STABLE 10/10 ANALYSIS
-   - Use the exact same Method × k results from the same CV run.
-   - Keep only candidates where all 10 folds selected the identical subset.
-   - Among those candidates, choose the best by the same performance rule.
-   - If a method has no 10/10 candidate, report it as unavailable.
-
-IMPORTANT:
-- Stability is always calculated from the untouched fold-level subsets.
-- Feature frequencies are descriptive only and never replace raw subsets.
-- RF and GB share the same feature-selection subsets for the same Method × k,
-  because feature selection happens before the downstream regressor.
-- RF and GB may choose different optimal k values because their predictive
-  performance differs.
-"""
-
 import os
 import warnings
 from itertools import combinations
@@ -63,9 +27,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error
 warnings.filterwarnings("ignore")
 
 
-# ============================================================================
-# 0. CONFIGURATION — EDIT ONLY THIS SECTION
-# ============================================================================
+
 DATA_PATH = r"C:\\Users\\anush\\Desktop\\ML projects\\separeted by number of dopands\\single_doped\\group_one_dopant_without_exact_duplicates.csv"
 TARGET_COL = "Emission max. (nm)"
 
@@ -77,10 +39,7 @@ MAX_FEATURES = 30
 RANDOM_SEED = 42
 N_JOBS = min(4, os.cpu_count() or 1)
 
-# Lexicographic optimal-k rule:
-# 1) highest mean R²; 2) lowest mean RMSE; 3) lowest mean MAE;
-# 4) fewer features as the final tie-breaker.
-# No stability threshold and no 10/10 filter are used to choose k.
+
 
 DROP_COLS = [
     "Inorganic phosphor",
@@ -147,16 +106,10 @@ FS_LABELS = {
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-# ============================================================================
-# 1. DATA
-# ============================================================================
-def load_data(path, target):
-    """
-    Load the database and prepare the numeric candidate-feature matrix.
 
-    Also prints a transparent audit showing exactly why original CSV columns
-    are not used as ML candidate features.
-    """
+#  DATA
+def load_data(path, target):
+     """Load the dataset and prepare the features for machine learning."""
     if not os.path.exists(path):
         raise FileNotFoundError(
             f"Dataset not found:\n{path}\n\nChange DATA_PATH in the configuration section."
@@ -261,9 +214,9 @@ def load_data(path, target):
     return X, y
 
 
-# ============================================================================
-# 2. FEATURE SELECTION
-# ============================================================================
+
+#  FEATURE SELECTION
+
 def ranked_top_k(scores, k):
     scores = np.asarray(scores, dtype=float)
     scores = np.nan_to_num(scores, nan=-np.inf, posinf=np.inf, neginf=-np.inf)
@@ -369,9 +322,9 @@ def select_features(X_train, y_train, method, k):
     raise ValueError(f"Unknown method: {method}")
 
 
-# ============================================================================
-# 3. FOLD WORKER
-# ============================================================================
+
+#  FOLD WORKER
+
 def process_fold(fold_number, train_idx, test_idx, X_arr, y_arr, method, k):
     scaler = StandardScaler()
     X_train = scaler.fit_transform(X_arr[train_idx])
@@ -405,9 +358,8 @@ def process_fold(fold_number, train_idx, test_idx, X_arr, y_arr, method, k):
     }
 
 
-# ============================================================================
-# 4. STABILITY — ALWAYS FROM THE 10 RAW FOLD SUBSETS
-# ============================================================================
+
+# STABILITY — ALWAYS FROM THE 10 RAW FOLD SUBSETS
 def subsets_to_binary_matrix(subsets, n_total_features):
     matrix = np.zeros((len(subsets), n_total_features), dtype=float)
     for row, subset in enumerate(subsets):
@@ -494,9 +446,9 @@ def compute_stability_metrics(subsets, n_total_features):
     return result
 
 
-# ============================================================================
-# 5. ALL-k SWEEP
-# ============================================================================
+
+# ALL-k SWEEP
+
 def run_sweep(X, y):
     X_arr = X.to_numpy(dtype=float)
     y_arr = y.to_numpy(dtype=float)
@@ -613,9 +565,8 @@ def run_sweep(X, y):
     return performance_df, fold_subsets_df, stability_df, results_all_k
 
 
-# ============================================================================
-# 6. OPTIMAL k — PERFORMANCE ONLY, NO 10/10 FILTER
-# ============================================================================
+
+# OPTIMAL k — PERFORMANCE ONLY, NO 10/10 FILTER
 def select_optimal_k(performance_df, stability_df):
     rows = []
 
@@ -671,9 +622,9 @@ def select_optimal_k(performance_df, stability_df):
     return summary_df
 
 
-# ============================================================================
-# 7. STRICT FULLY-STABLE 10/10 FINAL SELECTION
-# ============================================================================
+
+#  STRICT FULLY-STABLE 10/10 FINAL SELECTION
+
 def select_best_fully_stable_k(performance_df, stability_df, fold_subsets_df):
     """
     Code-1 branch:
@@ -794,9 +745,9 @@ def select_best_fully_stable_k(performance_df, stability_df, fold_subsets_df):
     return final_df, missing_df
 
 
-# ============================================================================
-# 8. PEARSON / ANOVA-F k=7 EXACT-DESCRIPTOR VERIFICATION
-# ============================================================================
+
+#  PEARSON / ANOVA-F k=7 EXACT-DESCRIPTOR VERIFICATION
+
 def verify_pearson_anova_k7(fold_subsets_df):
     target_methods = ["Pearson", "ANOVA_F"]
     report_rows = []
@@ -894,9 +845,8 @@ def verify_pearson_anova_k7(fold_subsets_df):
     return confirmation_df
 
 
-# ============================================================================
-# 9. FIGURES
-# ============================================================================
+
+# FIGURES
 def plot_performance_sweep(performance_df, optimal_df):
     metric_specs = [
         ("R2_mean", "R2_std", "R²", True),
@@ -1074,9 +1024,8 @@ def plot_fully_stable_summary(fully_stable_df):
         plt.close()
 
 
-# ============================================================================
-# 10. OPTIONAL CLEANUP
-# ============================================================================
+
+# OPTIONAL CLEANUP
 def cleanup_joblib_temp_files():
     import shutil
     import tempfile
@@ -1093,35 +1042,31 @@ def cleanup_joblib_temp_files():
                 pass
 
 
-# ============================================================================
-# 11. ENTRY POINT
-# ============================================================================
+#  ENTRY POINT
 if __name__ == "__main__":
     cleanup_joblib_temp_files()
     X, y = load_data(DATA_PATH, TARGET_COL)
 
-    # ------------------------------------------------------------
+    
     # ONE CV SWEEP: performance + raw-fold stability for every k
-    # ------------------------------------------------------------
+    
     performance_df, fold_subsets_df, stability_df, results_all_k = run_sweep(X, y)
 
-    # ------------------------------------------------------------
+    
     # BRANCH A: performance-optimal k, no stability eligibility rule
-    # ------------------------------------------------------------
+    
     performance_optimal_df = select_optimal_k(performance_df, stability_df)
 
-    # ------------------------------------------------------------
+    
     # BRANCH B: strict 10/10-stable candidates only
-    # ------------------------------------------------------------
     fully_stable_optimal_df, missing_stable_df = select_best_fully_stable_k(
         performance_df=performance_df,
         stability_df=stability_df,
         fold_subsets_df=fold_subsets_df,
     )
 
-    # ------------------------------------------------------------
+    
     # Pearson / ANOVA-F k=7 verification
-    # ------------------------------------------------------------
     k7_confirmation = verify_pearson_anova_k7(fold_subsets_df)
 
     # ------------------------------------------------------------
